@@ -1,3 +1,6 @@
 [submodule "RIOT"]
 	path = RIOT
 	url = https://github.com/inetrg/RIOT.git
+[submodule "ccn-lite"]
+	path = ccn-lite
+	url = https://github.com/inetrg/ccn-lite.git
