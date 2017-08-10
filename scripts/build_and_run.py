@@ -104,21 +104,51 @@ subprocess.check_call(["make", "clean", "all"], env=myenv)
 
 os.chdir(THIS_PATH_EVAL)
 
-# exclude these nodes in Lille due do duplicate addresses and defect nodes
-exclude=[6, 11, 35, 36, 37, 42, 9, 15, 19, 26, 31, 34, 50, 57, 67, 69, 76, 88, 91, 96, 117, \
-122, 135, 136, 139, 144, 151, 154, 157, 167, 173, 182, 189, 201, 210, 223, 223, 233, 258]
+if EXP_NAME != 'multihop':
+    # exclude these nodes in Lille due do duplicate addresses and defect nodes
+    exclude=[6, 11, 35, 36, 37, 42, 9, 15, 19, 26, 31, 34, 50, 57, 67, 69, 76, 88, 91, 96, 117, \
+    122, 135, 136, 139, 144, 151, 154, 157, 167, 173, 182, 189, 201, 210, 223, 223, 233, 258]
 
+    # check for active nodes and select the first IOTLAB_PHY_NUM_NODES
+    # +1 for consumer node
+    exp_nodes_str, exp_nodes= get_active_nodes(IOTLAB_SITE, IOTLAB_PHY_NUM_NODES+1, exclude)
+    iotlab_consumer_node = exp_nodes[-1]
 
-# check for active nodes and select the first IOTLAB_PHY_NUM_NODES
-# +1 for consumer node
-exp_nodes_str, exp_nodes= get_active_nodes(IOTLAB_SITE, IOTLAB_PHY_NUM_NODES+1, exclude)
-iotlab_consumer_node = exp_nodes[-1]
+    if ROUTES == 'all_default':
+        # remove last entry because array will be used for produces only
+        # in this case
+        exp_producers = exp_nodes[:-1]
+        print 'EXP_PRODUCERS '+ str(exp_producers)
 
+else: # multi-hop experiment
+    # set max topology rank to four
+    MAX_RANK=4
+    # identified beforehand
+    exp_nodes_str = '96+172+254+260+265+268+256+261+174+170+273+271+263+267+236+269+257+252+253+259+232+154+139+288+93+153+274+74+272+73'
 
-if ROUTES == 'all_default':
-    # remove last entry because array will be used for produces only
-    # in this case
-    exp_producers = exp_nodes[:-1]
+    # information about topology, determined by routing mechanism as referenced in the paper
+    file_open = open('../topology_grenoble.txt', 'r')
+    topology = csv.reader(file_open)
+    topology = list(topology)
+
+    iotlab_consumer_node = exp_nodes_str.split('+')[0]
+    exp_nodes=exp_nodes_str.split('+')
+
+    # select producer nodes: all nodes with highest rank
+    content_nodes=[]
+    exp_producers=[]
+    for line in topology:
+        rank = line[0].split()[1]
+        rank=int(rank)
+        node_id=line[0].split()[0]
+        node_id_int= node_id.split('-')[1]
+
+        if rank == MAX_RANK:
+            content_nodes.append(", ".join(line))
+            exp_producers.append(node_id_int)
+
+    exp_producers = map(int, exp_producers)
+    print 'EXP_PRODUCERS '+ str(exp_producers)
 
 print 'EXP_NODES: '+str(exp_nodes)
 print 'iotlab_consumer_node: '+str(iotlab_consumer_node)
@@ -172,16 +202,61 @@ if CCN_FIB_MODE=='broadcast':
 
 elif CCN_FIB_MODE=='unicast':
     print 'CCN_FIB_MODE is '+CCN_FIB_MODE
-    # the list contains hardware address of all nodes, generated during RIOT startup
-    import_hw_addys = open('../lille_nodes_hwaddy_fmt.txt', 'r')
-    hw_addys = csv.reader(import_hw_addys)
-    hw_addys = list(hw_addys)
 
-    if ROUTES == 'all_default':
-        init_consumer_unicast_pre(p, exp_nodes, iotlab_consumer_node, hw_addys, '/t')
+    if EXP_NAME != 'multihop':
+        # the list contains hardware address of all nodes, generated during RIOT startup
+        import_hw_addys = open('../lille_nodes_hwaddy_fmt.txt', 'r')
+        hw_addys = csv.reader(import_hw_addys)
+        hw_addys = list(hw_addys)
 
-    elif ROUTES == 'none':
-        init_consumer_unicast(p, exp_nodes, iotlab_consumer_node, hw_addys)
+        if ROUTES == 'none':
+            init_consumer_unicast(p, exp_nodes, iotlab_consumer_node, hw_addys)
+
+        else:
+            print 'Unicast mode reqirest to set ROUTES == none'
+
+    else: # multi-hop experiment
+
+        import_hw_addys = open('../grenoble_nodes_hwaddy_fmt.txt', 'r')
+        hw_addys = csv.reader(import_hw_addys)
+        hw_addys = list(hw_addys)
+
+        # local helper to find node in topology dump
+        def find_node(node_id, topology):
+            for line in topology:
+                if node_id == line[0].split()[0]:
+                    return line
+
+        # init all routes. content_nodes defined above
+        for content_node in content_nodes:
+
+            content_node = content_node.split(',')
+            node_id = content_node[0].split()[0]
+            node_id_int = int(node_id.split('-')[1])
+            hw_of_child = hw_long_addy_by_node(node_id, hw_addys)
+            rank = int(content_node[0].split()[1])
+
+
+            hw_of_parent = content_node[0].split()[2]
+            name_of_parent = node_by_hw_long_addy(hw_of_parent, hw_addys)
+            while rank > 1:
+                name_of_parent='m3-'+str(name_of_parent)
+                print (name_of_parent)+'; ccnl_fib add /'+str(node_id_int)+' '+str(hw_of_child)
+                p.stdin.write((name_of_parent)+'; ccnl_fib add /'+format(node_id_int, '03d')+' '+str(hw_of_child)+'\n');
+                small_delay()
+                # when rank is 2 next hop is consumer
+                if rank == 2:
+                    break
+
+                line = find_node(name_of_parent, topology)
+
+                node_id=line[0].split()[0]
+                rank=int(line[0].split()[1])
+                hw_of_parent = line[0].split()[2]
+                name_of_parent = node_by_hw_long_addy(hw_of_parent, hw_addys)
+
+                hw_of_child = hw_long_addy_by_node(node_id, hw_addys)
+
 else:
     print 'CCN_FIB_MODE can not be handeled'
     sys.exit()

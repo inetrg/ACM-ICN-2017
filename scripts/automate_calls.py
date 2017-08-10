@@ -11,22 +11,23 @@ import subprocess, sys, math
 CPY_OML_FILES           = 0
 
 # Script to be called from here
-SCRIPT                  = 'build_and_run_single_hop.py'
+SCRIPT                  = 'build_and_run.py'
 
 # Experiment name submitted to the testbed
-EXP_NAME                = 'ccn_exp_fix_conts'
-#EXP_NAME                = 'ccn_exp_fix_nodes'
+EXP_NAME                = 'ccn_exp_fix_conts' # single-hop
+#EXP_NAME                = 'ccn_exp_fix_nodes' # single-hop
+#EXP_NAME                = 'multihop'
 
 ROUTES                  = 'all_default' # Common prefix routes in FIB on all nodes
 #ROUTES                  = 'none'       # No additional routes on all nodes
 
 CCN_FIB_MODE            = {'unicast', 'broadcast'}
 
-NUM_CONTENTS            = [3]
+NUM_CONTENTS            = [10]
 #NUM_CONTENTS            = [5, 10, 15, 20, 25]
 
 # we will reserve consumer in addition
-IOTLAB_PHY_NUM_NODES    = [3]
+IOTLAB_PHY_NUM_NODES    = [10]
 #IOTLAB_PHY_NUM_NODES    = [10, 20, 30, 40, 50]
 
 # Must match with applications name in '../applications/''
@@ -35,7 +36,9 @@ RIOT_APP                = 'ccn_exp'
 # Use your iotlab account here. Requires configured account credentials (see 'auth-cli')
 IOTLAB_USER             = 'SET-YOUR-ACCOUNT-HERE'
 IOTLAB_TYPE             = 'm3'
-IOTLAB_SITE             = 'lille'
+IOTLAB_SITE             = 'lille' # used for singlehop experiments
+#IOTLAB_SITE             = 'grenoble' # used for multi-hop experiments
+
 IOTLAB_AUTHORITY        = (IOTLAB_USER+'@'+IOTLAB_SITE+".iot-lab.info")
 
 # Profile name (e.g. power monitoring profile). Not mandatory.
@@ -59,6 +62,9 @@ for mode in CCN_FIB_MODE:
 
             elif EXP_NAME == 'ccn_exp_fix_nodes':
                 # set a statitc inverval
+                INTEREST_INTERVAL = 5 # seconds
+
+            elif EXP_NAME == 'multihop':
                 INTEREST_INTERVAL = 5 # seconds
             else:
                 print 'WRONT EXP_NAME GIVEN. EXETING'
