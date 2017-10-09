@@ -18,6 +18,12 @@ CFLAGS += -DNEEDS_PACKET_CRAFTING
 
 CFLAGS += -DCCNL_CACHE_SIZE=100
 
+# Duplicate Interest Detection
+#CFLAGS += -DUSE_DUP_CHECK
+
+# Measurement Mode: Enforce Data Packets to MAC Broadcast Mapping
+#CFLAGS += -DALLOW_DATA_BCAST
+
 # Change this to 0 show compiler invocation lines by default:
 QUIET ?= 1
 
