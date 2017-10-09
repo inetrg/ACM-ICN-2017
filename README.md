@@ -32,5 +32,11 @@ items per producer, single-hop or multi-hop). For further documentation refer to
 
 Once an experiment runs, the aggregated serial output of all nodes will be logged in a file that will be
 stored in the root directory of your repository clone. To identify different dumps, a couple of experiment
-information as well as the unique experiment ID are part of the file name. These files can be incorporated
-for further post processing.
+information as well as the unique experiment ID are part of the file name. These files can be incorporated for further post processing.
+
+## Special Modes
+The provided test [application](https://github.com/inetrg/ACM-ICN-2017/tree/master/applications/ccn_exp) provides two special modes which can be enabled by `CFLAGS`. Proper dummies can be found in the
+applications [Makefile](https://github.com/inetrg/ACM-ICN-2017/blob/master/applications/ccn_exp/Makefile#L22).
+`USE_DUP_CHECK` enables a duplicate nonce check which drops packets (i.e. Interests) that have already
+been sent/forwarded.
+`ALLOW_DATA_BCAST` enforces data packets to be send via broadcast MAC address.
