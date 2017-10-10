@@ -14,8 +14,8 @@ CPY_OML_FILES           = 0
 SCRIPT                  = 'build_and_run.py'
 
 # Experiment name submitted to the testbed
-EXP_NAME                = 'ccn_exp_fix_conts' # single-hop
-#EXP_NAME                = 'ccn_exp_fix_nodes' # single-hop
+EXP_NAME                = 'ndn_exp_fix_conts' # single-hop
+#EXP_NAME                = 'ndn_exp_fix_nodes' # single-hop
 #EXP_NAME                = 'multihop'
 
 ROUTES                  = 'all_default' # Common prefix routes in FIB on all nodes
@@ -31,7 +31,7 @@ IOTLAB_PHY_NUM_NODES    = [10]
 #IOTLAB_PHY_NUM_NODES    = [10, 20, 30, 40, 50]
 
 # Must match with applications name in '../applications/''
-RIOT_APP                = 'ccn_exp'
+RIOT_APP                = 'ndn_exp'
 
 # Use your iotlab account here. Requires configured account credentials (see 'auth-cli')
 IOTLAB_USER             = 'SET-YOUR-ACCOUNT-HERE'
@@ -56,11 +56,11 @@ DUMMY                   = 'dummy'
 for mode in CCN_FIB_MODE:
     for num_phy_nodes in IOTLAB_PHY_NUM_NODES:
         for num_contents in NUM_CONTENTS:
-            if EXP_NAME == 'ccn_exp_fix_conts':
+            if EXP_NAME == 'ndn_exp_fix_conts':
                 # rate increases linear with num nodes
                 INTEREST_INTERVAL = (num_contents * 10) / float(num_phy_nodes)
 
-            elif EXP_NAME == 'ccn_exp_fix_nodes':
+            elif EXP_NAME == 'ndn_exp_fix_nodes':
                 # set a statitc inverval
                 INTEREST_INTERVAL = 5 # seconds
 

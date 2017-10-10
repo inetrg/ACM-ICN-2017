@@ -1,4 +1,4 @@
-APPLICATION = ccn_exp
+APPLICATION = ndn_exp
 
 # If no BOARD is found in the environment, use this default:
 BOARD ?= native

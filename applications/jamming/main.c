@@ -48,7 +48,7 @@ int main(void)
 
     gnrc_netif_get(&dev);
 
-    uint16_t chan = 20; // SYNC WITH ccn_exp
+    uint16_t chan = 20; // SYNC WITH ndn_exp
     int ret = gnrc_netapi_set(dev, NETOPT_CHANNEL, 0, &chan, sizeof(chan));
     if (ret < 0) {
         printf("Error setting channel %i, returned with %i\n", chan, ret);
